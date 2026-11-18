@@ -15,6 +15,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: buscar
@@ -41,6 +43,7 @@ jobs:
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          REPORTE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
         run: python -m scraper
 
       - name: Guardar resultados en el repo
@@ -57,6 +60,21 @@ jobs:
             git push
           fi
 
+      - name: Reporte HTML descargable
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-xeneize
+          path: resultados/index.html
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Preparar página web
+        if: always()
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: resultados/
+
       - name: Páginas de diagnóstico (si algún portal no devolvió nada)
         if: always()
         uses: actions/upload-artifact@v4
@@ -65,3 +83,18 @@ jobs:
           path: debug/
           if-no-files-found: ignore
           retention-days: 7
+
+  # Publica resultados/index.html en https://<usuario>.github.io/<repo>/
+  # Requiere activar una vez: Settings -> Pages -> Source: "GitHub Actions".
+  # Si no está activado, este paso falla sin afectar la búsqueda.
+  publicar:
+    needs: buscar
+    if: always()
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

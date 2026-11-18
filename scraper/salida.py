@@ -8,6 +8,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 from .common import Propiedad
+from .reporte import escribir_html
 
 log = logging.getLogger(__name__)
 
@@ -66,8 +67,9 @@ def _precio(p: Propiedad) -> str:
     return s
 
 
-def escribir(props: list[Propiedad], cfg: dict, resumen: dict) -> None:
+def escribir(props: list[Propiedad], cfg: dict, resumen: dict, dolar=None) -> None:
     DIR.mkdir(exist_ok=True)
+    escribir_html(DIR / "index.html", props, cfg, resumen, ahora(), dolar)
     # CSV (se abre directo en Excel / Google Sheets)
     with open(DIR / "propiedades.csv", "w", newline="", encoding="utf-8-sig") as f:
         w = csv.DictWriter(f, fieldnames=COLUMNAS, extrasaction="ignore")
@@ -94,7 +96,10 @@ def escribir(props: list[Propiedad], cfg: dict, resumen: dict) -> None:
         "",
         "Por portal: " + " · ".join(f"{k}: {v}" for k, v in resumen.items()),
         "",
-        "📥 [Descargar planilla CSV](propiedades.csv) (se abre con Excel / Google Sheets)",
+        "💙💛 **Versión linda:** abrí el reporte web (link de GitHub Pages en el README principal) "
+        "o descargá [index.html](index.html) y abrilo con doble click.",
+        "",
+        "📥 [Planilla CSV](propiedades.csv) (Excel / Google Sheets)",
         "",
         "| | Precio | Amb | m² | Expensas | Zona | Dirección / Título | Portal |",
         "|---|---|---|---|---|---|---|---|",
@@ -145,6 +150,9 @@ def telegram(props: list[Propiedad], cfg: dict) -> None:
     if len(lista) > 60:
         actual += f"... y {len(lista) - 60} más (ver el repo)"
     msgs.append(actual)
+    url_web = os.getenv("REPORTE_URL")
+    if url_web:
+        msgs[-1] += f"\n💙💛 Reporte completo: {url_web}"
     for m in msgs:
         try:
             requests.post(
@@ -154,3 +162,14 @@ def telegram(props: list[Propiedad], cfg: dict) -> None:
             )
         except Exception as e:
             log.warning("Error enviando Telegram: %s", e)
+    # El reporte HTML como archivo: se abre directo desde el celular
+    try:
+        with open(DIR / "index.html", "rb") as fh:
+            requests.post(
+                f"https://api.telegram.org/bot{token}/sendDocument",
+                data={"chat_id": chat, "caption": "💙💛 Propiedades Xeneizes - abrilo en el navegador"},
+                files={"document": ("propiedades-xeneizes.html", fh, "text/html")},
+                timeout=60,
+            )
+    except Exception as e:
+        log.warning("Error enviando el HTML por Telegram: %s", e)

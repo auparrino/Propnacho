@@ -131,10 +131,10 @@ def main(argv=None) -> int:
 
     moneda = (b.get("moneda") or "USD").upper()
     resultados.sort(key=lambda p: (not p.nueva, precio_en(p, moneda, dolar) or 9e15))
-    salida.escribir(resultados, cfg, resumen)
+    salida.escribir(resultados, cfg, resumen, dolar)
     salida.guardar_historial(historial)
     salida.telegram(resultados, cfg)
-    log.info("LISTO: %d propiedades (%d nuevas). Ver resultados/README.md",
+    log.info("LISTO: %d propiedades (%d nuevas). Ver resultados/index.html",
              len(resultados), sum(p.nueva for p in resultados))
     return 1 if activas and fallas == activas else 0
 

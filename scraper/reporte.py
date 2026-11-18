@@ -1,0 +1,313 @@
+"""Reporte HTML azul y oro (autocontenido, se abre con doble click o en GitHub Pages)."""
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from .common import Propiedad
+
+
+def _datos(props: list[Propiedad], dolar) -> list[dict]:
+    out = []
+    for p in props:
+        usd = p.precio if p.moneda == "USD" else (p.precio / dolar if p.precio and dolar else None)
+        out.append({
+            "fuente": p.fuente, "url": p.url, "titulo": p.titulo, "direccion": p.direccion,
+            "zona": p.zona, "tipo": p.tipo, "img": p.imagen,
+            "precio": p.precio, "moneda": p.moneda, "usd": round(usd) if usd else None,
+            "amb": p.ambientes, "dorm": p.dormitorios, "banos": p.banos, "m2": p.m2,
+            "expensas": p.expensas, "nueva": p.nueva, "desde": p.primera_vez,
+            "antes": p.extra.get("bajo_precio_desde"), "apto": p.apto_credito_origen,
+            "id": p.clave,
+        })
+    return out
+
+
+def escribir_html(destino: Path, props: list[Propiedad], cfg: dict, resumen: dict,
+                  fecha: str, dolar) -> None:
+    b = cfg["busqueda"]
+    meta = {
+        "fecha": fecha,
+        "resumen": resumen,
+        "moneda": (b.get("moneda") or "USD").upper(),
+        "filtros": {
+            "tipos": b.get("tipos") or [],
+            "zonas": [z if isinstance(z, str) else z.get("nombre", "") for z in b.get("zonas") or []],
+            "precio_min": b.get("precio_min") or 0, "precio_max": b.get("precio_max") or 0,
+            "amb_min": b.get("ambientes_min") or 0, "amb_max": b.get("ambientes_max") or 0,
+            "m2_min": b.get("m2_min") or 0,
+        },
+        "apto": bool(b.get("solo_apto_credito")),
+    }
+    data = json.dumps({"meta": meta, "props": _datos(props, dolar)}, ensure_ascii=False)
+    data = data.replace("</", "<\\/")  # no romper el <script>
+    destino.write_text(PLANTILLA.replace("__DATA__", data), encoding="utf-8")
+
+
+PLANTILLA = r"""<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Propiedades Xeneizes · Apto crédito</title>
+<meta name="theme-color" content="#062a6b">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --azul:#062a6b; --azul2:#0b3d91; --azul3:#041a45; --oro:#fcb813; --oro2:#ffd659;
+  --tinta:#0d1b3a; --gris:#5b6b8c; --fondo:#eef2fa;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--tinta);
+  background:var(--fondo)}
+.display{font-family:"Bebas Neue",Impact,"Arial Narrow",sans-serif;letter-spacing:.04em;font-weight:400}
+
+/* ---------- Header estilo camiseta: azul con franja oro ---------- */
+header{position:relative;color:#fff;overflow:hidden;border-bottom:14px solid var(--oro);
+  background:radial-gradient(ellipse at 20% 0%,var(--azul2) 0%,var(--azul) 45%,var(--azul3) 100%)}
+header::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 2px,transparent 2px 9px)}
+.hero{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:22px 20px 26px;display:grid;
+  grid-template-columns:1fr auto;gap:18px;align-items:center}
+.kicker{font-weight:800;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--oro2)}
+h1{margin:4px 0 0;font-size:clamp(44px,8vw,92px);line-height:.88;color:#fff;
+  text-shadow:0 3px 0 var(--azul3),0 0 24px rgba(0,0,0,.25)}
+h1 span{display:inline-block;margin-top:6px;padding:4px 16px 0;background:var(--oro);color:var(--azul3);
+  text-shadow:none;transform:skewX(-6deg);box-shadow:6px 6px 0 var(--azul3)}
+.sub{margin-top:12px;font-weight:600;font-size:14px;color:#dce6ff}
+.estrellas{color:var(--oro2);letter-spacing:4px;font-size:18px}
+
+/* ---------- Tablero ---------- */
+.tablero{background:#050d22;border:3px solid var(--oro);border-radius:14px;padding:12px 16px;min-width:290px;
+  box-shadow:0 10px 30px rgba(0,0,0,.35),inset 0 0 18px rgba(252,184,19,.12)}
+.tablero .fila{display:flex;justify-content:space-between;gap:16px}
+.tablero .eq{font-size:15px;color:#9fb3e6;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.tablero .gol{font-family:"Bebas Neue",Impact,monospace;font-size:54px;line-height:1;color:var(--oro);
+  text-shadow:0 0 12px rgba(252,184,19,.55)}
+.tablero .min{font-size:12px;color:#7f93c6;text-align:center;margin-top:6px;border-top:1px dashed #22345f;padding-top:6px}
+
+/* ---------- Barra de filtros ---------- */
+.barra{position:sticky;top:0;z-index:5;background:var(--azul3);border-bottom:4px solid var(--oro);
+  box-shadow:0 4px 14px rgba(4,26,69,.25)}
+.barra .in{max-width:1200px;margin:0 auto;padding:10px 20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.barra input[type=search],.barra select,.barra input[type=number]{border:0;border-radius:999px;padding:9px 14px;
+  font:600 14px Inter,sans-serif;color:var(--tinta);background:#fff;outline:none}
+.barra input[type=search]{flex:1 1 200px}
+.barra input[type=number]{width:120px}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:8px 13px;cursor:pointer;
+  font:700 13px Inter,sans-serif;background:var(--azul2);color:#fff;border:2px solid transparent;user-select:none}
+.chip input{display:none}
+.chip.on{background:var(--oro);color:var(--azul3)}
+.chip:hover{border-color:var(--oro)}
+
+main{max-width:1200px;margin:0 auto;padding:18px 20px 40px}
+.info{display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--gris);font-size:13px;margin-bottom:14px}
+.pill{background:#fff;border:1px solid #d5ddef;border-radius:999px;padding:4px 10px;font-weight:600;color:var(--azul)}
+.pill.warn{background:#fff4d6;border-color:var(--oro);color:#7a5400}
+
+/* ---------- Tarjetas ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:18px}
+.card{background:#fff;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;position:relative;
+  box-shadow:0 2px 0 var(--oro),0 8px 22px rgba(6,42,107,.10);transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-3px);box-shadow:0 3px 0 var(--oro),0 16px 32px rgba(6,42,107,.18)}
+.foto{height:180px;background:linear-gradient(135deg,var(--azul) 0 45%,var(--oro) 45% 55%,var(--azul) 55%);
+  position:relative;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.75)}
+.foto img{width:100%;height:100%;object-fit:cover;display:block}
+.foto .sin{font-family:"Bebas Neue",Impact,sans-serif;font-size:28px;letter-spacing:.08em}
+.badges{position:absolute;top:10px;left:10px;display:flex;gap:6px;flex-wrap:wrap}
+.b{font:800 11px Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:5px 9px;border-radius:6px}
+.b.nueva{background:var(--oro);color:var(--azul3);box-shadow:0 2px 0 var(--azul3)}
+.b.bajo{background:#fff;color:var(--azul)}
+.b.portal{position:absolute;left:10px;bottom:10px;background:rgba(4,26,69,.85);color:#fff}
+.estrella{position:absolute;right:10px;bottom:10px;width:38px;height:38px;border-radius:50%;border:0;cursor:pointer;
+  background:rgba(255,255,255,.95);font-size:19px;line-height:38px;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.estrella.on{background:var(--oro)}
+.cuerpo{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.precio{font-family:"Bebas Neue",Impact,sans-serif;font-size:36px;line-height:1;color:var(--azul)}
+.precio small{font-family:Inter,sans-serif;font-size:13px;color:var(--gris);font-weight:600;margin-left:6px}
+.antes{font-size:12px;color:var(--gris);text-decoration:line-through}
+.dir{font-weight:800;font-size:15px}
+.tit{font-size:13px;color:var(--gris);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.datos{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.dato{background:var(--fondo);border-radius:8px;padding:5px 8px;font-size:12px;font-weight:700;color:var(--azul)}
+.pie{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:8px}
+.zona{font-size:12px;color:var(--gris);font-weight:600;text-transform:capitalize}
+.ver{background:var(--azul);color:#fff;text-decoration:none;font-weight:800;font-size:13px;padding:9px 14px;
+  border-radius:10px;border-bottom:3px solid var(--oro);white-space:nowrap}
+.ver:hover{background:var(--azul2)}
+
+.vacio{text-align:center;padding:60px 20px;color:var(--gris)}
+.vacio .display{font-size:46px;color:var(--azul)}
+footer{background:var(--azul3);color:#9fb3e6;text-align:center;padding:26px 20px;font-size:13px;border-top:6px solid var(--oro)}
+footer b{color:var(--oro)}
+@media (max-width:720px){
+  .hero{grid-template-columns:1fr}
+  .tablero{min-width:0}
+  .barra{position:static}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="hero">
+    <div>
+      <div class="kicker">Mitad más uno · Apto crédito</div>
+      <h1 class="display">Propiedades<br><span>Xeneizes</span></h1>
+      <div class="sub"><span class="estrellas">★★★★★★</span><br><span id="sub"></span></div>
+    </div>
+    <div class="tablero">
+      <div class="fila">
+        <div><div class="eq">Propiedades</div><div class="gol" id="g-total">0</div></div>
+        <div style="text-align:center"><div class="eq">Nuevas</div><div class="gol" id="g-nuevas">0</div></div>
+        <div style="text-align:right"><div class="eq">Bajaron</div><div class="gol" id="g-bajo">0</div></div>
+      </div>
+      <div class="min" id="g-fecha"></div>
+    </div>
+  </div>
+</header>
+
+<div class="barra"><div class="in">
+  <input type="search" id="q" placeholder="Buscar calle, barrio, palabra…">
+  <select id="orden">
+    <option value="nuevas">🆕 Nuevas primero</option>
+    <option value="barato">💰 Más baratas</option>
+    <option value="caro">Más caras</option>
+    <option value="m2">📐 Más m²</option>
+    <option value="usdm2">⚽ Mejor US$/m²</option>
+  </select>
+  <input type="number" id="pmax" placeholder="Máx US$" min="0" step="1000">
+  <label class="chip" id="c-nuevas"><input type="checkbox">🆕 Sólo nuevas</label>
+  <label class="chip" id="c-fav"><input type="checkbox">⭐ Las que banco</label>
+  <span id="chips-fuente"></span>
+  <span id="chips-amb"></span>
+</div></div>
+
+<main>
+  <div class="info" id="info"></div>
+  <div class="grid" id="grid"></div>
+  <div class="vacio" id="vacio" hidden>
+    <div class="display">0 a 0 en la Bombonera</div>
+    <p>No hay propiedades con estos filtros. Aflojá un poco la marca y volvé a probar.</p>
+  </div>
+</main>
+
+<footer>
+  <b>DALE BOCA</b> 💙💛💙 · Hecho para un bostero de ley que quiere su casa propia.<br>
+  Datos de Zonaprop, Argenprop y MercadoLibre. Chequeá siempre el aviso original y confirmá con tu banco.
+</footer>
+
+<script id="datos" type="application/json">__DATA__</script>
+<script>
+(function(){
+const D = JSON.parse(document.getElementById('datos').textContent);
+const M = D.meta, P = D.props;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = v => v == null ? '-' : Math.round(v).toLocaleString('es-AR');
+const PORTAL = {zonaprop:'Zonaprop', argenprop:'Argenprop', mercadolibre:'MercadoLibre'};
+const FAV_KEY = 'xeneize-favs';
+let favs = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]'));
+const st = {q:'', orden:'nuevas', pmax:0, nuevas:false, fav:false, fuentes:new Set(), amb:new Set()};
+
+// ---- Encabezado / tablero
+const f = M.filtros;
+$('#sub').textContent = [
+  f.tipos.join(' · '), f.zonas.join(', '),
+  (f.precio_max ? `${M.moneda} ${num(f.precio_min)} a ${num(f.precio_max)}` : ''),
+  (f.amb_min||f.amb_max ? `${f.amb_min||'-'} a ${f.amb_max||'-'} amb` : '')
+].filter(Boolean).join('  |  ');
+$('#g-total').textContent = P.length;
+$('#g-nuevas').textContent = P.filter(p=>p.nueva).length;
+$('#g-bajo').textContent = P.filter(p=>p.antes).length;
+$('#g-fecha').textContent = 'Último partido: ' + M.fecha + ' hs';
+
+const info = $('#info');
+Object.entries(M.resumen).forEach(([k,v]) => {
+  const ok = typeof v === 'number';
+  info.insertAdjacentHTML('beforeend',
+    `<span class="pill ${ok?'':'warn'}">${esc(PORTAL[k]||k)}: ${esc(v)}</span>`);
+});
+info.insertAdjacentHTML('beforeend', '<span id="cuenta" style="margin-left:auto"></span>');
+
+// ---- Chips dinámicos
+function chip(cont, label, set, val){
+  const el = document.createElement('label'); el.className='chip'; el.textContent = label;
+  el.onclick = e => { e.preventDefault(); set.has(val)?set.delete(val):set.add(val); el.classList.toggle('on'); render(); };
+  cont.appendChild(el);
+}
+[...new Set(P.map(p=>p.fuente))].forEach(x => chip($('#chips-fuente'), PORTAL[x]||x, st.fuentes, x));
+[...new Set(P.map(p=>p.amb).filter(Boolean))].sort((a,b)=>a-b)
+  .forEach(a => chip($('#chips-amb'), a+' amb', st.amb, a));
+function toggle(id, key){ const el=$(id); el.onclick=e=>{e.preventDefault(); st[key]=!st[key]; el.classList.toggle('on',st[key]); render();}; }
+toggle('#c-nuevas','nuevas'); toggle('#c-fav','fav');
+$('#q').oninput = e => { st.q = e.target.value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); render(); };
+$('#orden').onchange = e => { st.orden = e.target.value; render(); };
+$('#pmax').oninput = e => { st.pmax = +e.target.value || 0; render(); };
+
+const norm = s => String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+const usdm2 = p => (p.usd && p.m2) ? p.usd / p.m2 : null;
+const ORD = {
+  nuevas: (a,b) => (b.nueva - a.nueva) || ((a.usd??9e15) - (b.usd??9e15)),
+  barato: (a,b) => (a.usd??9e15) - (b.usd??9e15),
+  caro:   (a,b) => (b.usd??-1) - (a.usd??-1),
+  m2:     (a,b) => (b.m2??-1) - (a.m2??-1),
+  usdm2:  (a,b) => (usdm2(a)??9e15) - (usdm2(b)??9e15),
+};
+
+function card(p){
+  const precio = p.precio == null ? 'Consultar'
+    : `${p.moneda==='USD'?'US$':'$'} ${num(p.precio)}`;
+  const um = usdm2(p);
+  const datos = [
+    p.amb && `${p.amb} amb`, p.dorm && `${p.dorm} dorm`, p.banos && `${p.banos} baño${p.banos>1?'s':''}`,
+    p.m2 && `${num(p.m2)} m²`, um && `US$ ${num(um)}/m²`, p.expensas && `Exp. $ ${num(p.expensas)}`
+  ].filter(Boolean).map(d=>`<span class="dato">${esc(d)}</span>`).join('');
+  const foto = p.img
+    ? `<img loading="lazy" referrerpolicy="no-referrer" src="${esc(p.img)}" alt="" onerror="this.remove()">`
+    : '';
+  return `<article class="card">
+    <div class="foto"><span class="sin" style="position:absolute">SIN FOTO</span>${foto}
+      <div class="badges">${p.nueva?'<span class="b nueva">🆕 Golazo nuevo</span>':''}
+        ${p.antes?`<span class="b bajo">⬇ Bajó de ${num(p.antes)}</span>`:''}</div>
+      <span class="b portal">${esc(PORTAL[p.fuente]||p.fuente)}</span>
+      <button class="estrella ${favs.has(p.id)?'on':''}" data-id="${esc(p.id)}" title="La banco">⭐</button>
+    </div>
+    <div class="cuerpo">
+      <div><span class="precio">${esc(precio)}</span>
+        ${p.usd && p.moneda!=='USD' ? `<small>≈ US$ ${num(p.usd)}</small>`:''}</div>
+      ${p.antes?`<div class="antes">Antes ${p.moneda==='USD'?'US$':'$'} ${num(p.antes)}</div>`:''}
+      <div class="dir">${esc(p.direccion || p.titulo || 'Ver aviso')}</div>
+      ${p.direccion && p.titulo ? `<div class="tit">${esc(p.titulo)}</div>`:''}
+      <div class="datos">${datos}</div>
+      <div class="pie">
+        <span class="zona">📍 ${esc(p.zona)} · ${esc(p.tipo)}${p.desde?` · desde ${esc(p.desde.slice(0,10))}`:''}</span>
+        <a class="ver" href="${esc(p.url)}" target="_blank" rel="noopener">Ver aviso →</a>
+      </div>
+    </div>
+  </article>`;
+}
+
+function render(){
+  let L = P.filter(p =>
+    (!st.nuevas || p.nueva) && (!st.fav || favs.has(p.id)) &&
+    (!st.fuentes.size || st.fuentes.has(p.fuente)) && (!st.amb.size || st.amb.has(p.amb)) &&
+    (!st.pmax || (p.usd ?? 0) <= st.pmax) &&
+    (!st.q || norm(p.titulo+' '+p.direccion+' '+p.zona).includes(st.q)));
+  L.sort(ORD[st.orden]);
+  $('#grid').innerHTML = L.map(card).join('');
+  $('#vacio').hidden = L.length > 0;
+  $('#cuenta').textContent = `Mostrando ${L.length} de ${P.length}`;
+}
+$('#grid').addEventListener('click', e => {
+  const b = e.target.closest('.estrella'); if (!b) return;
+  const id = b.dataset.id; favs.has(id) ? favs.delete(id) : favs.add(id);
+  localStorage.setItem(FAV_KEY, JSON.stringify([...favs])); b.classList.toggle('on');
+  if (st.fav) render();
+});
+render();
+})();
+</script>
+</body>
+</html>
+"""

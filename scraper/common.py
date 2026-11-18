@@ -22,6 +22,7 @@ class Propiedad:
     m2: Optional[float] = None
     direccion: str = ""
     zona: str = ""
+    imagen: str = ""
     tipo: str = ""
     texto: str = ""  # texto libre de la tarjeta (para filtros), no se exporta
     apto_credito: Optional[bool] = None
@@ -161,3 +162,15 @@ def detectar_apto_credito(txt: str | None) -> Optional[bool]:
     if _RE_APTO.search(txt):
         return True
     return None
+
+
+def primera_imagen(card) -> str:
+    """URL de la primera foto real de una tarjeta (ignora logos / íconos / svg)."""
+    for img in card.select("img"):
+        for attr in ("data-src", "data-flickity-lazyload", "data-lazy", "src", "srcset"):
+            v = (img.get(attr) or "").strip().split(" ")[0]
+            if v.startswith("//"):
+                v = "https:" + v
+            if v.startswith("http") and not re.search(r"\.svg|logo|icon|placeholder|blank", v, re.I):
+                return v
+    return ""

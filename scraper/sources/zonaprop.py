@@ -4,7 +4,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from ..common import Propiedad, limpiar, parse_expensas, parse_features, parse_precio, slug
+from ..common import Propiedad, primera_imagen, limpiar, parse_expensas, parse_features, parse_precio, slug
 from .base import Busqueda, Fuente
 
 BASE = "https://www.zonaprop.com.ar"
@@ -105,5 +105,6 @@ class Zonaprop(Fuente):
             feats = q('[data-qa="POSTING_CARD_FEATURES"]', '[class*="main-features"]')
             parse_features(feats or texto, p)
             p.texto = texto
+            p.imagen = primera_imagen(c)
             out.append(p)
         return out

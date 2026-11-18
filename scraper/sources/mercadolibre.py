@@ -4,7 +4,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from ..common import Propiedad, limpiar, parse_expensas, parse_features, parse_precio, slug
+from ..common import Propiedad, primera_imagen, limpiar, parse_expensas, parse_features, parse_precio, slug
 from .base import Busqueda, Fuente
 
 BASE = "https://inmuebles.mercadolibre.com.ar"
@@ -127,5 +127,6 @@ class MercadoLibre(Fuente):
             )
             parse_features(attrs + " " + texto, p)
             p.texto = texto
+            p.imagen = primera_imagen(c)
             out.append(p)
         return out

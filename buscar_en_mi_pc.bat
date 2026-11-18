@@ -10,5 +10,5 @@ if not exist .venv (
   call .venv\Scripts\activate.bat
 )
 python -m scraper
-start "" "resultados\propiedades.csv"
+start "" "resultados\index.html"
 pause
