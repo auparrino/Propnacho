@@ -1,0 +1,103 @@
+# =====================================================================
+#  PROPNACHO - Buscador de propiedades APTO CRÉDITO
+#  Zonaprop + Argenprop + MercadoLibre
+#
+#  Este es el ÚNICO archivo que tenés que tocar.
+#  Editalo desde GitHub (ícono del lápiz ✏️), cambiá los valores y
+#  apretá "Commit changes". La próxima corrida ya usa lo nuevo.
+#
+#  Reglas: no borres los dos puntos ":" ni cambies la sangría (espacios).
+#  Si un valor no te importa, poné 0 (números) o dejá la lista vacía [].
+# =====================================================================
+
+busqueda:
+  # "venta" o "alquiler" (apto crédito tiene sentido para venta)
+  operacion: venta
+
+  # Tipos de propiedad. Opciones: departamento, ph, casa
+  tipos:
+    - departamento
+    - ph
+
+  # Barrios / localidades. Escribilos en minúscula, sin tildes y con guiones.
+  # Ejemplos CABA: palermo, belgrano, caballito, villa-crespo, almagro, nunez,
+  #                colegiales, villa-urquiza, saavedra, flores, recoleta
+  # Para TODA Capital poné: capital-federal
+  #
+  # Si es una zona fuera de CABA (ej. Vicente López), MercadoLibre necesita la
+  # provincia/región. Usá el formato largo (ver ejemplo comentado abajo).
+  zonas:
+    - palermo
+    - belgrano
+    - villa-crespo
+    # - nombre: vicente-lopez
+    #   mercadolibre: bs-as-gba-norte/vicente-lopez
+
+  # Precio en esta moneda: USD o ARS
+  moneda: USD
+  precio_min: 60000
+  precio_max: 150000
+
+  # Ambientes (2 = monoambiente + 1 dormitorio... o sea, 1 dorm + living)
+  ambientes_min: 2
+  ambientes_max: 4
+
+  # Metros cuadrados (totales o cubiertos, el que publique el aviso)
+  m2_min: 40
+  m2_max: 0
+
+  # Expensas máximas en PESOS (0 = no filtrar)
+  expensas_max: 0
+
+  # true = sólo propiedades apto crédito hipotecario
+  solo_apto_credito: true
+
+  # Descarta avisos que contengan alguna de estas palabras
+  palabras_excluidas:
+    - reservado
+    - en pozo
+    - "a estrenar en 2028"
+    - subasta
+    - nuda propiedad
+
+# Qué portales usar (true / false)
+fuentes:
+  zonaprop: true
+  argenprop: true
+  mercadolibre: true
+
+# Avisos por Telegram (opcional, ver README para configurarlo)
+notificaciones:
+  telegram: false
+  # Avisar sólo de propiedades NUEVAS (true) o mandar todo cada vez (false)
+  solo_nuevas: true
+
+# ---------------------------------------------------------------------
+#  Avanzado: normalmente no hace falta tocar nada de acá para abajo
+# ---------------------------------------------------------------------
+avanzado:
+  # Máximo de páginas de resultados por portal / zona / tipo
+  paginas_max:
+    zonaprop: 10
+    argenprop: 10
+    mercadolibre: 6
+
+  # Si el listado no dice "apto crédito", entra al aviso para chequearlo.
+  # Más preciso pero más lento.
+  verificar_en_ficha: true
+  max_fichas_a_verificar: 200
+
+  # Segundos de espera entre pedidos (no bajarlo mucho o te bloquean)
+  espera_segundos: 3
+
+  # Cotización del dólar para comparar precios publicados en la otra moneda.
+  # "auto" = dólar oficial de dolarapi.com. O poné un número, ej. 1450
+  cotizacion_dolar: auto
+
+  # ¿Hiciste una búsqueda en la web del portal con filtros que acá no están?
+  # Pegá la URL completa y también se va a recorrer (los filtros de arriba
+  # se aplican igual sobre los resultados).
+  urls_extra:
+    zonaprop: []
+    argenprop: []
+    mercadolibre: []
