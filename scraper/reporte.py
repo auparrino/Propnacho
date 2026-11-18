@@ -49,7 +49,7 @@ PLANTILLA = r"""<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Propiedades Xeneizes · Apto crédito</title>
+<title>Propiedades · Apto crédito</title>
 <meta name="theme-color" content="#062a6b">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -152,8 +152,8 @@ footer b{color:var(--oro)}
 <header>
   <div class="hero">
     <div>
-      <div class="kicker">Mitad más uno · Apto crédito</div>
-      <h1 class="display">Propiedades<br><span>Xeneizes</span></h1>
+      <div class="kicker">Mitad más uno · Zonaprop · Argenprop · MercadoLibre</div>
+      <h1 class="display">Propiedades<br><span>Apto crédito</span></h1>
       <div class="sub"><span class="estrellas">★★★★★★</span><br><span id="sub"></span></div>
     </div>
     <div class="tablero">
@@ -206,7 +206,7 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num = v => v == null ? '-' : Math.round(v).toLocaleString('es-AR');
 const PORTAL = {zonaprop:'Zonaprop', argenprop:'Argenprop', mercadolibre:'MercadoLibre'};
-const FAV_KEY = 'xeneize-favs';
+const FAV_KEY = 'propnacho-favs';
 let favs = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]'));
 const st = {q:'', orden:'nuevas', pmax:0, nuevas:false, fav:false, fuentes:new Set(), amb:new Set()};
 

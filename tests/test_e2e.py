@@ -27,7 +27,7 @@ def test_corrida_completa(tmp_path, monkeypatch):
     assert m.main(["--config", str(cfg), "--sin-navegador"]) == 0
     md = (tmp_path / "resultados" / "README.md").read_text()
     html = (tmp_path / "resultados" / "index.html").read_text()
-    assert "Xeneizes" in html and "MLA1500000001" in html
+    assert "Apto crédito" in html and "MLA1500000001" in html
     csv = (tmp_path / "resultados" / "propiedades.csv").read_text(encoding="utf-8-sig")
     print(md)
     assert "51234567" in csv          # zonaprop apto (filtro portal)

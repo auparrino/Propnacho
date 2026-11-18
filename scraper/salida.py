@@ -167,8 +167,8 @@ def telegram(props: list[Propiedad], cfg: dict) -> None:
         with open(DIR / "index.html", "rb") as fh:
             requests.post(
                 f"https://api.telegram.org/bot{token}/sendDocument",
-                data={"chat_id": chat, "caption": "💙💛 Propiedades Xeneizes - abrilo en el navegador"},
-                files={"document": ("propiedades-xeneizes.html", fh, "text/html")},
+                data={"chat_id": chat, "caption": "💙💛 Propiedades apto crédito - abrilo en el navegador"},
+                files={"document": ("propiedades.html", fh, "text/html")},
                 timeout=60,
             )
     except Exception as e:

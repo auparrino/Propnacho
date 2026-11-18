@@ -64,7 +64,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: reporte-xeneize
+          name: reporte
           path: resultados/index.html
           if-no-files-found: ignore
           retention-days: 30

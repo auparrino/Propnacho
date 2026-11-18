@@ -5,7 +5,7 @@ filtros y que son **apto crédito hipotecario**. Corre solo en GitHub (gratis), 
 por día, y te deja una tabla con los resultados marcando las **🆕 nuevas**.
 Si querés, también te avisa por **Telegram**.
 
-💙💛 **El resultado es una página web azul y oro, "Propiedades Xeneizes"**: tarjetas con foto, precio,
+💙💛 **El resultado es una página web azul y oro**: tarjetas con foto, precio,
 US$/m², expensas, marca de 🆕 nuevas y ⬇ bajas de precio, filtros (portal, ambientes, precio,
 búsqueda por calle), orden y ⭐ para marcar las que te gustan. Anda perfecto en el celular.
 
@@ -19,7 +19,7 @@ tabla rápida en [`resultados/README.md`](resultados/README.md) y la planilla
 
 1. **Creá una cuenta en [GitHub](https://github.com/signup)** si no tenés (es gratis).
 2. En esta página apretá el botón verde **`Use this template` → `Create a new repository`**.
-   - Ponele un nombre (ej. `casa-xeneize`), elegí **Public** y **Create repository**.
+   - Ponele un nombre (ej. `mi-casa`), elegí **Public** y **Create repository**.
      (Public hace falta para tener la página web gratis. Lo único que se ve es tu búsqueda y
      avisos públicos de los portales. Si preferís Private, el reporte te llega igual por
      Telegram o lo descargás desde Actions, ver más abajo.)
@@ -82,7 +82,7 @@ Te va a llegar un mensaje con cada propiedad nueva que aparezca, el link a la p�
 reporte como archivo HTML (lo tocás y se abre en el navegador del celular).
 
 ### Otra forma de ver el reporte (repo privado, sin Telegram)
-**Actions → la última corrida → Artifacts → `reporte-xeneize`** → se baja un zip con
+**Actions → la última corrida → Artifacts → `reporte`** → se baja un zip con
 `index.html`. Lo abrís con doble click.
 
 ---
