@@ -94,7 +94,11 @@ class Argenprop(Fuente):
             p.direccion = q(".card__address", '[class*="address"]')
             p.titulo = q(".card__title--primary", ".card__title", "h2", "h3")[:160]
             feats = q(".card__main-features", '[class*="features"]')
-            parse_features(feats + " " + texto, p)
+            # Primero lo más confiable (features de la tarjeta), después el título y
+            # recién al final la descripción libre, que puede decir cosas como
+            # "edificio con unidades de 1, 2 y 3 ambientes".
+            for fuente_txt in (feats, p.titulo, texto):
+                parse_features(fuente_txt, p)
             p.texto = texto
             p.imagen = primera_imagen(c)
             out.append(p)

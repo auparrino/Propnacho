@@ -125,7 +125,8 @@ class MercadoLibre(Fuente):
                     ".ui-search-card-attributes__attribute"
                 )
             )
-            parse_features(attrs + " " + texto, p)
+            for fuente_txt in (attrs, p.titulo, texto):  # de más a menos confiable
+                parse_features(fuente_txt, p)
             p.texto = texto
             p.imagen = primera_imagen(c)
             out.append(p)

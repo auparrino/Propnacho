@@ -79,9 +79,17 @@ class Fetcher:
             from playwright.sync_api import sync_playwright
 
             self._pw = sync_playwright().start()
-            self._browser = self._pw.chromium.launch(
-                headless=True, args=["--disable-blink-features=AutomationControlled"]
-            )
+            try:
+                self._browser = self._pw.chromium.launch(
+                    headless=True, args=["--disable-blink-features=AutomationControlled"]
+                )
+            except Exception as e:
+                # Si no arranca Chromium hay que soltar Playwright; si no, el próximo
+                # intento falla con "Sync API inside the asyncio loop".
+                self._pw.stop()
+                self._pw = None
+                self.usar_navegador = False
+                raise Bloqueado(f"no pude abrir Chromium: {str(e).splitlines()[0]}") from e
             self._ctx = self._browser.new_context(
                 locale="es-AR",
                 viewport={"width": 1366, "height": 900},
@@ -130,6 +138,8 @@ class Fetcher:
                 raise Bloqueado(url)
             log.info("  -> uso navegador real para %s", dominio or url)
             self._forzar_navegador.add(dominio)
+        if not self.usar_navegador:
+            raise Bloqueado(f"{dominio or url} (sin navegador)")
         try:
             return self._navegador(url)
         except ImportError:

@@ -106,9 +106,13 @@ def parse_expensas(txt: str | None) -> Optional[float]:
     return None
 
 
-_RE_M2 = re.compile(r"([\d.,]+)\s*m(?:²|2|ts2?|etros cuadrados)\b\.?\s*(tot|cub)?", re.I)
+_RE_M2 = re.compile(
+    r"([\d.,]+)\s*m(?:²|2|ts2?|etros cuadrados)(?!\w)\.?\s*(tot|semi|desc|cub)?", re.I
+)
 _RE_AMB = re.compile(r"(\d+)\s*amb", re.I)
-_RE_MONO = re.compile(r"monoambiente", re.I)
+# "1, 2 y 3 ambientes" / "2 o 3 amb" / "2/3 amb": es una lista (emprendimiento), no un dato
+_RE_LISTA_ANTES = re.compile(r"\d\s*(?:,|y|o|/)\s*$", re.I)
+_RE_MONO = re.compile(r"monoam", re.I)
 _RE_DORM = re.compile(r"(\d+)\s*(?:dorm|habitaci|recámara|recamara)", re.I)
 _RE_BANO = re.compile(r"(\d+)\s*bañ", re.I)
 
@@ -122,9 +126,16 @@ def parse_features(txt: str, p: Propiedad) -> None:
             v = _num(m.group(1))
             if v and 8 <= v <= 5000:
                 valores.setdefault((m.group(2) or "x").lower(), v)
-        p.m2 = valores.get("tot") or valores.get("x") or valores.get("cub")
+        cub = valores.get("cub")
+        if cub and valores.get("semi"):  # "40 m² cubie. 8 m² semicubierta" -> 48
+            cub += valores["semi"]
+        p.m2 = valores.get("tot") or valores.get("x") or cub
     if p.ambientes is None:
-        m = _RE_AMB.search(txt)
+        m = next(
+            (m for m in _RE_AMB.finditer(txt)
+             if not _RE_LISTA_ANTES.search(txt[max(0, m.start() - 6):m.start()])),
+            None,
+        )
         if m:
             p.ambientes = int(m.group(1))
         elif _RE_MONO.search(txt):
