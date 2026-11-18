@@ -51,7 +51,7 @@ def test_urls():
            {"nombre": "vicente-lopez", "mercadolibre": "bs-as-gba-norte/vicente-lopez"}],
            "moneda": "USD", "precio_min": 60000, "precio_max": 150000, "solo_apto_credito": True}}
     z = FUENTES["zonaprop"].busquedas(cfg)
-    assert z[0].url_pagina(1) == "https://www.zonaprop.com.ar/departamentos-venta-palermo-apto-credito-60000-150000-dolar.html"
+    assert z[0].url_pagina(1) == "https://www.zonaprop.com.ar/departamentos-venta-palermo-con-apto-credito-60000-150000-dolar.html"
     assert z[0].url_pagina(2).endswith("-dolar-pagina-2.html")
     m = FUENTES["mercadolibre"].busquedas(cfg)
     assert m[1].url_pagina(2) == ("https://inmuebles.mercadolibre.com.ar/departamentos/venta/bs-as-gba-norte/vicente-lopez/"

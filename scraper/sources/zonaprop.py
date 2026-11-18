@@ -43,7 +43,7 @@ class Zonaprop(Fuente):
             t = TIPOS.get(slug(tipo), slug(tipo))
             for z in b.get("zonas") or ["capital-federal"]:
                 nombre, zs = _zona(z)
-                partes = [t, op, zs] + (["apto-credito"] if apto else [])
+                partes = [t, op, zs] + (["con-apto-credito"] if apto else [])
 
                 def mk(extra, partes=partes):
                     base = "-".join(partes + ([extra] if extra else []))
