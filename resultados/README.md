@@ -1,6 +1,6 @@
 # 🏠 Propiedades apto crédito
 
-**Última búsqueda:** 2026-11-26 16:57 (hora Argentina) · **0 propiedades** · **0 nuevas** 🆕
+**Última búsqueda:** 2026-11-27 00:57 (hora Argentina) · **0 propiedades** · **0 nuevas** 🆕
 
 Filtros: departamento, ph · palermo, belgrano, villa-crespo · USD 60.000 a 150.000 · 2 a 4 amb · desde 40 m²
 
